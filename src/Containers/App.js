@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import './App.css';
-import Radium, { StyleRoot } from 'radium';
-import Person from './Person/Person';
-import Validation from './Validaton/Validation';
-import CharComponent from './CharComponent/CharComponent'
+import Persons from '../Components/Persons/Persons';
+import Validation from '../Components/Validaton/Validation';
+import Cockpit from '../Components/Cockpit/Cockpit';
+// import CharComponent from '../Components/CharComponent/CharComponent';
 
 class App extends Component {
   state = {
@@ -15,9 +15,18 @@ class App extends Component {
       someOtherReason: "new value for other reason... ",
       showPersons: false,
       userInput: ' ',
-      length: 0
+      length: 0,
+      changedCounter: 0
   };
 
+  static getDerivedStateFromProps(props, state) {
+    console.log('[App.js] getDerivedStateFromProps', props);
+    return state;
+  };
+
+  componentDidMount() {
+    console.log('[App.js] componentDidMount');
+  };
 
   nameChangeHandler = ( event, id ) => {
     //event is an object and once it is fired off we want to use its target property to get the value of the target element, that is why it is used 
@@ -42,7 +51,12 @@ class App extends Component {
     //we cant do this else we will be changing the whole original state to just what persons contain which is an arr of obj
     // this.state.persons = persons;
 
-    this.setState({ persons: persons });
+    this.setState((prevState, props) => {
+      return {
+          persons: persons,
+          changedCounter: prevState.changedCounter + 1
+        };
+    });
   };
 
   deletePersonHandler = (personIndex) => {
@@ -72,69 +86,35 @@ class App extends Component {
 
   
   render() {
-    const style = {
-      backgroundColor: 'green',
-      color: 'white',
-      border: '1px solid blue',
-      font: 'inherit',
-      padding: '8px',
-      marginBottom: '10px',
-      ':hover': {
-        backgroundColor: 'pink',
-        color: 'purple'
-      }
-    };
-
     let person = null;
 
     //want to render my list of persons array object by OUTPUTTING LIST
     if (this.state.showPersons) {
-      person = (
-        <div>
-          { this.state.persons.map((person, index) => {
-            return <Person 
-              click= { () => this.deletePersonHandler(index) }
-              name = { person.name} 
-              age = { person.age }
-              key = { person.id } 
-              changed = {(event) => this.nameChangeHandler(event, person.id )} /> 
-          })}
-        </div> 
-      );
-      style.backgroundColor = 'red';
-      style[':hover'] = {
-        backgroundColor: 'blue',
-        color: 'white'
-      }
+      // we dont need the paranthesis cos we are having just one component that is rednering a list
+      person = <Persons 
+        persons = {this.state.persons} 
+        clicked = {this.deletePersonHandler}
+        changed = {this.nameChangeHandler} 
+      />
     };
 
-    const character = this.state.userInput.split('').map((ch, index) => {
-      return <CharComponent text = { ch } key = { index} /> 
-    });
-
-    let classes = [];
-
-    if (this.state.persons.length <= 2) {
-      classes.push('red');
-    };
-    if (this.state.persons.length <=1 ) {
-      classes.push('bold');
-    };
+    // const character = this.state.userInput.split('').map((ch, index) => {
+    //   return <CharComponent text = { ch } key = { index} /> 
+    // });   
  
     return (
-      <StyleRoot>
-        <div className="App">
-          <h1>Hi, I'm a react app</h1>
-          <p className={classes.join(' ')}>It is really working</p>
+        <div className= "App"> 
+          <Cockpit 
+            title = {this.props.appTitle}
+            showPersons = {this.state.showPersons}
+            persons = {this.state.persons}
+            clicked = {this.toggleChangeHandler}
+          />
 
-          <button style = { style }
-            onClick = { this.toggleChangeHandler }>Switch Name
-          </button>
-          
           { person }
           <div>
             <input 
-              onChange = {this.inputTextHandler} 
+              onChange = {this.inputTextHandler}  
               value= { this.state.userInput }
               />
             <p> {this.state.userInput} </p>
@@ -143,14 +123,13 @@ class App extends Component {
 
           <Validation length = { this.state.length } />
 
-          { character }
+          {/* { character } */}
         </div>
-      </StyleRoot>
     )
   }
 };
 
-export default Radium(App);
+export default App;
 
 
 
