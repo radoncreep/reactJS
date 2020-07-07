@@ -1,64 +1,61 @@
 import React, { Component } from 'react';
-import axios from '../../axios';
+import { Route, NavLink, Switch, Redirect } from 'react-router-dom';
 
-import Post from '../../components/Post/Post';
-import FullPost from '../../components/FullPost/FullPost';
-import NewPost from '../../components/NewPost/NewPost';
 import './Blog.css';
+import Posts from '../Posts/Posts';
+// import NewPost from '../NewPost/NewPost';
+import asyncComponent from '../../hoc/asyncComponent';
+
+const AsyncNewPost = asyncComponent(() => {
+    return import ('../NewPost/NewPost');
+});
 
 class Blog extends Component {
     state = {
-        posts: [],
-        selectedPostId: null,
-        error: false
-    }
-
-    componentDidMount() {
-        axios.get('/posts')
-            .then(response => {
-                // console.log(response.data);
-                const posts = response.data.slice(0, 4);
-                const updatedPosts = posts.map(post => {
-                    return {
-                        ...post,
-                        author: 'Max'
-                    }
-                });
-                // console.log(updatedPosts);
-                this.setState({ posts: updatedPosts });
-            }).catch(error => {
-                // console.log(error);
-                this.setState({ error: true })
-            });
-    };
-
-    postSelectedHandler = (id) => {
-        this.setState({ selectedPostId: id })
+        auth: true
     }
     render () {
-        let posts = <p style={{textAlign: 'center'}}>Something went wrong</p>
-        
-        if (!this.state.error) {
-            posts = this.state.posts.map(post => {
-                return <Post 
-                    key={post.id}
-                    title={post.title}
-                    author={post.author}
-                    clicked={() => this.postSelectedHandler(post.id)}/>
-            })
-        }
-        
+  
         return (
-            <div>
-                <section className="Posts">
-                   {posts}
-                </section>
-                <section>
-                    <FullPost postId={this.state.selectedPostId }/>
-                </section>
-                <section>
-                    <NewPost />
-                </section>
+            <div className="Blog">
+                <header>
+                    <nav>
+                        <ul> 
+                            {/* NavLink has a special styling attached to it so it is used instead of Link in some cases */}
+                            <li><NavLink 
+                                to="/posts" 
+                                exact 
+                                activeClassName="my-active"
+                                activeStyle={{
+                                    color: '#fa923f',
+                                    textDecoration: 'underline'
+                                }}
+                                >Home</NavLink></li>
+                            <li><NavLink to={{
+                                pathname: '/new-post',
+                                hash: '#submit',
+                                search: '?quick-submit=true' // allows us to use query params
+                            }}>New Post</NavLink></li>
+                        </ul>
+                    </nav>
+                </header>
+                {/* <Route path="/" exact render={() => <h1>Home</h1>}/>
+                <Route path="/" exact render={() => <h1>Home 2</h1>}/> */}
+
+                {/* Components needs to be a reference to our function or class */}
+                <Switch> 
+                    {this.state.auth ? <Route path="/new-post" component={AsyncNewPost} /> : null}
+                    <Route path="/posts" component={Posts} /> 
+
+                    {/* <--------- Handling 404 pages ----------> */}
+                    <Route render={() => <h1>Not found</h1>} />
+                    
+                    {/* if you use this outside a switch statement, from cant be specified */}
+                    <Redirect from="/" to="/posts"/>
+                    {/* Specifies where you want to redirect to
+                    the path in the to attr has a route component that renders a content from a component */}
+                    {/* it doesnt render content it just changes the URL so that we can reach another route where we render content */}
+                </Switch>
             </div>
         );
     }

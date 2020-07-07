@@ -8,11 +8,25 @@ class FullPost extends Component {
         loadedPost: null
     }
 
-    componentDidUpdate() {
+    componentDidMount() {
+        // console.log(this.props.match.params.id);
         // console.log(this.props.postId)
-        if (this.props.postId) {
-            if ( !this.state.loadedPost || (this.state.loadedPost && this.state.loadedPost.postId !== this.props.postId) ) {
-                axios.get('/posts/' + this.props.postId)
+        this.loadedPost() 
+    }
+
+    componentDidUpdate() {
+        // You need to handle changes in compDidUpdate if the commp in genral is loaded through routing
+        // because the router will not unmount the old component and mount the same copponent again with different data
+        // It will resue the old comp and just adjust the route parameter
+        // so this life cycle is used to update data in a component
+        // which wiil be called becos the props changed, you receive a new props and with match obj and params obj
+        this.loadedPost()
+    }
+
+    loadedPost() {
+        if (this.props.match.params.id) {
+            if ( !this.state.loadedPost || (this.state.loadedPost && this.state.loadedPost.id !== +this.props.match.params.id) ) {
+                axios.get('/posts/' + this.props.match.params.id)
                 .then(response => {
                     // console.log(response.status)
                     this.setState({ loadedPost: response.data })
@@ -35,7 +49,7 @@ class FullPost extends Component {
     }
     render () {
         let post = <p style={{textAlign: 'center'}}>Please select a Post!</p>;
-        if (this.props.postId) {
+        if (this.props.match.params.id) {
             post = <p style={{textAlign: 'center'}}>Loading...!</p>;
         }
         if (this.state.loadedPost) {
@@ -49,7 +63,6 @@ class FullPost extends Component {
                         </button>
                     </div>
                 </div>
-    
             );  
         };
         
